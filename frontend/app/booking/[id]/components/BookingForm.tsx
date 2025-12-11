@@ -18,9 +18,30 @@ export default function BookingForm({ roomId }: { roomId: string }) {
   const submitBooking = async (e: any) => {
     e.preventDefault();
 
+    // Validation
+    if (form.nights < 1) {
+      alert("Number of nights must be at least 1");
+      return;
+    }
+    
+    const checkInDate = new Date(form.checkInDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (checkInDate < today) {
+      alert("Check-in date cannot be in the past");
+      return;
+    }
+
     try {
       await api.post("/bookings", { ...form, roomId });
       alert("Booking successful!");
+      // Reset form
+      setForm({
+        guestName: "",
+        nights: 1,
+        checkInDate: "",
+      });
     } catch (err: any) {
       alert(err.response?.data?.message || "Error booking room");
     }
@@ -35,15 +56,19 @@ export default function BookingForm({ roomId }: { roomId: string }) {
         name="guestName"
         placeholder="Guest Name"
         className="border p-2 rounded"
+        value={form.guestName}
         onChange={handleChange}
         required
+        minLength={2}
       />
 
       <input
         name="nights"
         type="number"
-        placeholder="Nights"
+        placeholder="Number of Nights"
         className="border p-2 rounded"
+        min="1"
+        value={form.nights}
         onChange={handleChange}
         required
       />
@@ -52,8 +77,10 @@ export default function BookingForm({ roomId }: { roomId: string }) {
         name="checkInDate"
         type="date"
         className="border p-2 rounded"
+        value={form.checkInDate}
         onChange={handleChange}
         required
+        min={new Date().toISOString().split('T')[0]}
       />
 
       <button className="bg-green-600 text-white px-4 py-2 rounded">
